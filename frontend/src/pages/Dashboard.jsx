@@ -2,6 +2,33 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
+const StarPicker = ({ value, onChange }) => (
+  <div style={{ display: 'flex', gap: 6 }}>
+    {[1, 2, 3, 4, 5].map((star) => (
+      <button
+        key={star}
+        type="button"
+        onClick={() => onChange(star)}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: '1.8rem',
+          padding: '0 2px',
+          color: star <= value ? '#f59e0b' : '#cbd5e1',
+          transition: 'color 0.15s ease, transform 0.1s ease',
+          lineHeight: 1,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.2)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+      >
+        ★
+      </button>
+    ))}
+  </div>
+);
+
 const CATEGORIES = [
   'Website Development',
   'Logo Design',
@@ -76,6 +103,14 @@ export default function Dashboard() {
   const [projects, setProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectsError, setProjectsError] = useState(null);
+
+  // Review panel states (keyed by projectId)
+  const [openReviewPanels, setOpenReviewPanels] = useState({});
+  const [reviewRatings, setReviewRatings] = useState({});
+  const [reviewFeedbacks, setReviewFeedbacks] = useState({});
+  const [reviewSubmitting, setReviewSubmitting] = useState({});
+  const [reviewSubmitted, setReviewSubmitted] = useState({});
+  const [reviewErrors, setReviewErrors] = useState({});
 
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -184,6 +219,40 @@ export default function Dashboard() {
       setProjects(projects.map(p => p._id === projectId ? res.data.project : p));
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update project status.');
+    }
+  };
+
+  const toggleReviewPanel = (projectId) => {
+    setOpenReviewPanels((prev) => ({ ...prev, [projectId]: !prev[projectId] }));
+  };
+
+  const handleSubmitReview = async (projectId) => {
+    const rating = reviewRatings[projectId];
+    const feedback = reviewFeedbacks[projectId] || '';
+
+    if (!rating) {
+      setReviewErrors((prev) => ({ ...prev, [projectId]: 'Please select a star rating.' }));
+      return;
+    }
+    if (!feedback.trim()) {
+      setReviewErrors((prev) => ({ ...prev, [projectId]: 'Please enter your feedback.' }));
+      return;
+    }
+
+    setReviewSubmitting((prev) => ({ ...prev, [projectId]: true }));
+    setReviewErrors((prev) => ({ ...prev, [projectId]: null }));
+
+    try {
+      await api.post('/api/reviews', { projectId, rating, feedback: feedback.trim() });
+      setReviewSubmitted((prev) => ({ ...prev, [projectId]: true }));
+      setOpenReviewPanels((prev) => ({ ...prev, [projectId]: false }));
+    } catch (err) {
+      setReviewErrors((prev) => ({
+        ...prev,
+        [projectId]: err.response?.data?.message || 'Failed to submit review.',
+      }));
+    } finally {
+      setReviewSubmitting((prev) => ({ ...prev, [projectId]: false }));
     }
   };
 
@@ -326,6 +395,108 @@ export default function Dashboard() {
 
                   {/* Visual Tracker Timeline */}
                   <ProjectTimeline currentStatus={project.status} />
+
+                  {/* Review Panel — visible to Customer on Delivered projects */}
+                  {!isProvider && project.status === 'Delivered' && (
+                    <div style={{ marginTop: 12, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
+                      {reviewSubmitted[project._id] ? (
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          background: '#f0fdf4', border: '1px solid #bbf7d0',
+                          borderRadius: 999, padding: '6px 14px',
+                          color: '#15803d', fontWeight: 600, fontSize: '0.88rem',
+                        }}>
+                          <span>✓</span> Review submitted
+                        </div>
+                      ) : (
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => toggleReviewPanel(project._id)}
+                            style={{
+                              padding: '7px 16px',
+                              background: openReviewPanels[project._id] ? '#e0e7ff' : '#eef2ff',
+                              color: '#4338ca',
+                              border: '1px solid #c7d2fe',
+                              borderRadius: 8,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontSize: '0.9rem',
+                              transition: 'background 0.2s ease',
+                            }}
+                          >
+                            {openReviewPanels[project._id] ? '▲ Hide Review Form' : '★ Leave a Review'}
+                          </button>
+
+                          {openReviewPanels[project._id] && (
+                            <div style={{
+                              marginTop: 12,
+                              padding: '16px 18px',
+                              background: '#f8fafc',
+                              borderRadius: 12,
+                              border: '1px solid #e2e8f0',
+                              display: 'grid',
+                              gap: 12,
+                            }}>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a', marginBottom: 6 }}>Your Rating</div>
+                                <StarPicker
+                                  value={reviewRatings[project._id] || 0}
+                                  onChange={(val) =>
+                                    setReviewRatings((prev) => ({ ...prev, [project._id]: val }))
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a', marginBottom: 6 }}>Your Feedback</div>
+                                <textarea
+                                  value={reviewFeedbacks[project._id] || ''}
+                                  onChange={(e) =>
+                                    setReviewFeedbacks((prev) => ({ ...prev, [project._id]: e.target.value }))
+                                  }
+                                  placeholder="Share your experience with this provider..."
+                                  rows={3}
+                                  style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 10,
+                                    border: '1px solid #cbd5e1',
+                                    fontSize: '0.95rem',
+                                    resize: 'vertical',
+                                    boxSizing: 'border-box',
+                                    fontFamily: 'inherit',
+                                  }}
+                                />
+                              </div>
+                              {reviewErrors[project._id] && (
+                                <p style={{ margin: 0, color: '#dc2626', fontSize: '0.88rem' }}>
+                                  {reviewErrors[project._id]}
+                                </p>
+                              )}
+                              <button
+                                type="button"
+                                disabled={reviewSubmitting[project._id]}
+                                onClick={() => handleSubmitReview(project._id)}
+                                style={{
+                                  alignSelf: 'flex-start',
+                                  padding: '9px 22px',
+                                  background: reviewSubmitting[project._id] ? '#94a3b8' : '#4f46e5',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: 8,
+                                  fontWeight: 600,
+                                  cursor: reviewSubmitting[project._id] ? 'not-allowed' : 'pointer',
+                                  transition: 'background 0.2s ease',
+                                }}
+                              >
+                                {reviewSubmitting[project._id] ? 'Submitting...' : 'Submit Review'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
                     {renderProjectActions(project)}

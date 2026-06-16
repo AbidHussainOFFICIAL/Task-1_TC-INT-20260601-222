@@ -59,6 +59,14 @@ const profileSchema = new mongoose.Schema(
       type: [portfolioSchema],
       default: [],
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
