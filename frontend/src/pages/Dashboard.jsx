@@ -10,11 +10,72 @@ const CATEGORIES = [
   'Other'
 ];
 
+const STATUS_STEPS = ['Pending', 'Accepted', 'In Progress', 'Completed', 'Delivered'];
+
+const ProjectTimeline = ({ currentStatus }) => {
+  const currentIndex = STATUS_STEPS.indexOf(currentStatus);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: 4 }}>
+      {STATUS_STEPS.map((status, index) => {
+        const isCompleted = index <= currentIndex;
+        const isActive = index === currentIndex;
+        return (
+          <div key={status} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+            {/* Horizontal Line connecting steps */}
+            {index > 0 && (
+              <div style={{
+                position: 'absolute',
+                left: '-50%',
+                right: '50%',
+                top: 10,
+                height: 3,
+                backgroundColor: index <= currentIndex ? '#10b981' : '#e2e8f0',
+                zIndex: 1
+              }} />
+            )}
+            {/* Step Dot */}
+            <div style={{
+              width: 22, height: 22,
+              borderRadius: '50%',
+              backgroundColor: isActive ? '#3b82f6' : (isCompleted ? '#10b981' : '#ffffff'),
+              border: `2px solid ${isActive ? '#3b82f6' : (isCompleted ? '#10b981' : '#cbd5e1')}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#ffffff',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              zIndex: 2,
+              boxShadow: isActive ? '0 0 0 4px rgba(59, 130, 246, 0.2)' : 'none',
+              transition: 'all 0.3s ease'
+            }}>
+              {isCompleted && !isActive ? '✓' : ''}
+            </div>
+            {/* Step Label */}
+            <span style={{
+              marginTop: 6,
+              fontSize: '0.72rem',
+              fontWeight: isActive || isCompleted ? 600 : 500,
+              color: isActive ? '#3b82f6' : (isCompleted ? '#10b981' : '#64748b'),
+              textAlign: 'center'
+            }}>
+              {status}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Projects / requests states
+  const [projects, setProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsError, setProjectsError] = useState(null);
 
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -45,9 +106,24 @@ export default function Dashboard() {
     }
   }, [isProvider]);
 
+  const fetchProjects = useCallback(async () => {
+    setProjectsLoading(true);
+    setProjectsError(null);
+    try {
+      const endpoint = isProvider ? '/api/projects/provider' : '/api/projects/customer';
+      const res = await api.get(endpoint);
+      setProjects(res.data.projects || []);
+    } catch (err) {
+      setProjectsError(err.response?.data?.message || 'Failed to fetch projects.');
+    } finally {
+      setProjectsLoading(false);
+    }
+  }, [isProvider]);
+
   useEffect(() => {
     fetchServices();
-  }, [fetchServices]);
+    fetchProjects();
+  }, [fetchServices, fetchProjects]);
 
   const handleResetForm = () => {
     setTitle('');
@@ -102,6 +178,15 @@ export default function Dashboard() {
     }
   };
 
+  const handleUpdateProjectStatus = async (projectId, nextStatus) => {
+    try {
+      const res = await api.patch(`/api/projects/${projectId}/status`, { status: nextStatus });
+      setProjects(projects.map(p => p._id === projectId ? res.data.project : p));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update project status.');
+    }
+  };
+
   const handleSubmitService = async (e) => {
     e.preventDefault();
     setFormError(null);
@@ -148,6 +233,110 @@ export default function Dashboard() {
     } finally {
       setFormSubmitting(false);
     }
+  };
+
+  const renderProjectActions = (project) => {
+    const { status, _id } = project;
+
+    if (isProvider) {
+      if (status === 'Pending') {
+        return (
+          <button
+            onClick={() => handleUpdateProjectStatus(_id, 'Accepted')}
+            style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Accept Project
+          </button>
+        );
+      }
+      if (status === 'Accepted') {
+        return (
+          <button
+            onClick={() => handleUpdateProjectStatus(_id, 'In Progress')}
+            style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Start Work
+          </button>
+        );
+      }
+      if (status === 'In Progress') {
+        return (
+          <button
+            onClick={() => handleUpdateProjectStatus(_id, 'Completed')}
+            style={{ padding: '8px 16px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Mark as Completed
+          </button>
+        );
+      }
+    } else {
+      if (status === 'Completed') {
+        return (
+          <button
+            onClick={() => handleUpdateProjectStatus(_id, 'Delivered')}
+            style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Accept Delivery
+          </button>
+        );
+      }
+    }
+    return null;
+  };
+
+  const renderProjectsSection = () => {
+    return (
+      <div style={{ marginTop: 40, borderTop: '2px solid #f1f5f9', paddingTop: 30 }}>
+        <h2>{isProvider ? 'Received Requests / Orders' : 'My Orders & Projects'}</h2>
+        
+        {projectsError && <p style={{ color: '#dc2626' }}>{projectsError}</p>}
+        
+        {projectsLoading ? (
+          <p>Loading projects...</p>
+        ) : projects.length === 0 ? (
+          <div style={{ padding: '30px 20px', border: '1px dashed #cbd5e1', borderRadius: 18, color: '#64748b', textAlign: 'center' }}>
+            <p style={{ margin: 0 }}>No orders or project requests found.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 20, marginTop: 16 }}>
+            {projects.map((project) => {
+              const partner = isProvider ? project.customer : project.provider;
+              return (
+                <div key={project._id} className="service-card" style={{ borderLeft: '4px solid #3b82f6', background: '#ffffff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '1.15rem', color: '#0f172a' }}>
+                        {project.service?.title || 'Custom Service Requested'}
+                      </h4>
+                      <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: 8 }}>
+                        {isProvider ? 'Client' : 'Provider'}: <strong>{partner?.name || 'User'}</strong> ({partner?.email})
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#059669' }}>${project.budget}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>
+                        Deadline: {new Date(project.deadline).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, fontSize: '0.9rem', color: '#475569', marginBottom: 16 }}>
+                    <strong>Requirements:</strong> {project.requirements}
+                  </div>
+
+                  {/* Visual Tracker Timeline */}
+                  <ProjectTimeline currentStatus={project.status} />
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                    {renderProjectActions(project)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -381,12 +570,12 @@ export default function Dashboard() {
               ))}
             </div>
           )}
+
+          {renderProjectsSection()}
         </div>
       ) : (
-        <div style={{ padding: 24, border: '1px solid #e2e8f0', borderRadius: 18, background: '#f8fafc' }}>
-          <h2>Customer Area</h2>
-          <p>As a customer, you can browse available services, request quotes, and hire service providers.</p>
-          <p style={{ color: '#64748b', fontStyle: 'italic' }}>Marketplace Search & Filter engine features will be available in the next release.</p>
+        <div>
+          {renderProjectsSection()}
         </div>
       )}
     </div>
