@@ -11,21 +11,48 @@ export default function CompleteProfile() {
   const [skills, setSkills] = useState('');
   const [startingPrice, setStartingPrice] = useState('');
   const [portfolio, setPortfolio] = useState([]);
+  const [experience, setExperience] = useState([]);
   const [picture, setPicture] = useState(null);
   const [picturePreview, setPicturePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!user) navigate('/login');
-    else if (user.role !== 'Service Provider') {
-      navigate('/dashboard');
+    if (!user) {
+      navigate('/login');
+      return;
     }
+    if (user.role !== 'Service Provider') {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Fetch existing profile
+    api.get('/api/profile/me')
+      .then((res) => {
+        const p = res.data.profile;
+        if (p) {
+          setHeadline(p.headline || '');
+          setBio(p.bio || '');
+          setSkills(p.skills ? p.skills.join(', ') : '');
+          setStartingPrice(p.pricing?.startingPrice || '');
+          setPortfolio(p.portfolio || []);
+          setExperience(p.experience || []);
+          if (p.profilePictureUrl) {
+            setPicturePreview(p.profilePictureUrl);
+          }
+        }
+      })
+      .catch((err) => {
+        // 404 means profile does not exist yet; ignore it.
+        if (err.response?.status !== 404) {
+          setError(err.response?.data?.message || 'Failed to load profile.');
+        }
+      });
   }, [user, navigate]);
 
   useEffect(() => {
     if (!picture) {
-      setPicturePreview(null);
       return;
     }
 
@@ -42,6 +69,22 @@ export default function CompleteProfile() {
     const updated = [...portfolio];
     updated[idx][field] = value;
     setPortfolio(updated);
+  };
+
+  const handleRemovePortfolio = (idx) => {
+    setPortfolio(portfolio.filter((_, i) => i !== idx));
+  };
+
+  const handleAddExperience = () => setExperience([...experience, { title: '', company: '', period: '', description: '' }]);
+
+  const handleExperienceChange = (idx, field, value) => {
+    const updated = [...experience];
+    updated[idx][field] = value;
+    setExperience(updated);
+  };
+
+  const handleRemoveExperience = (idx) => {
+    setExperience(experience.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e) => {
@@ -61,12 +104,20 @@ export default function CompleteProfile() {
       fd.append('skills', skills);
       fd.append('pricing', JSON.stringify({ startingPrice: Number(startingPrice) || 0 }));
       fd.append('portfolio', JSON.stringify(portfolio.filter((item) => item.title.trim())));
+      fd.append('experience', JSON.stringify(experience.filter((item) => item.title.trim())));
       if (picture) fd.append('picture', picture);
 
       const res = await api.post('/api/profile', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      navigate(`/profile/${res.data.profile.user._id}`);
+      const returnedUser = res?.data?.profile?.user;
+      const userId = returnedUser?._id || returnedUser?.id || returnedUser;
+      if (userId) {
+        navigate(`/profile/${userId}`);
+      } else {
+        console.warn('Profile created but no user id returned, redirecting to dashboard');
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save profile.');
     } finally {
@@ -110,19 +161,55 @@ export default function CompleteProfile() {
           </div>
         )}
 
-        <div>
+        <div style={{ marginTop: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3>Experience</h3>
+            <button type="button" onClick={handleAddExperience} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>
+              Add Experience
+            </button>
+          </div>
+          {experience.length === 0 && <p style={{ color: '#6b7280' }}>No experience items listed yet.</p>}
+          {experience.map((item, idx) => (
+            <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: 14, padding: 14, marginBottom: 12, position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => handleRemoveExperience(idx)}
+                style={{ position: 'absolute', top: 10, right: 10, background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: '0.85rem' }}
+              >
+                Remove
+              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '90%' }}>
+                <input placeholder="Job Title (e.g. Lead Developer)" value={item.title} onChange={(e) => handleExperienceChange(idx, 'title', e.target.value)} />
+                <input placeholder="Company" value={item.company} onChange={(e) => handleExperienceChange(idx, 'company', e.target.value)} />
+              </div>
+              <input placeholder="Period (e.g. 2021 - 2024)" value={item.period} onChange={(e) => handleExperienceChange(idx, 'period', e.target.value)} style={{ marginTop: 10 }} />
+              <textarea placeholder="Description of your responsibilities" value={item.description} onChange={(e) => handleExperienceChange(idx, 'description', e.target.value)} rows={3} style={{ marginTop: 10, width: '100%' }} />
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3>Portfolio</h3>
-            <button type="button" onClick={handleAddPortfolio} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', background: 'white' }}>
+            <button type="button" onClick={handleAddPortfolio} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>
               Add item
             </button>
           </div>
           {portfolio.length === 0 && <p style={{ color: '#6b7280' }}>No portfolio items yet.</p>}
           {portfolio.map((item, idx) => (
-            <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: 14, padding: 14, marginBottom: 12 }}>
-              <input placeholder="Title" value={item.title} onChange={(e) => handlePortfolioChange(idx, 'title', e.target.value)} />
-              <input placeholder="URL" value={item.url} onChange={(e) => handlePortfolioChange(idx, 'url', e.target.value)} style={{ marginTop: 10 }} />
-              <textarea placeholder="Description" value={item.description} onChange={(e) => handlePortfolioChange(idx, 'description', e.target.value)} rows={3} style={{ marginTop: 10 }} />
+            <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: 14, padding: 14, marginBottom: 12, position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => handleRemovePortfolio(idx)}
+                style={{ position: 'absolute', top: 10, right: 10, background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: '0.85rem' }}
+              >
+                Remove
+              </button>
+              <div style={{ width: '90%' }}>
+                <input placeholder="Title" value={item.title} onChange={(e) => handlePortfolioChange(idx, 'title', e.target.value)} />
+                <input placeholder="URL" value={item.url} onChange={(e) => handlePortfolioChange(idx, 'url', e.target.value)} style={{ marginTop: 10 }} />
+                <textarea placeholder="Description" value={item.description} onChange={(e) => handlePortfolioChange(idx, 'description', e.target.value)} rows={3} style={{ marginTop: 10 }} />
+              </div>
             </div>
           ))}
         </div>

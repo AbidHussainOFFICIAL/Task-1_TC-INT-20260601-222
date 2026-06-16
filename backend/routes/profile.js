@@ -4,6 +4,7 @@ const cloudinary = require('../config/cloudinary');
 const Profile = require('../models/Profile');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 const upload = multer(); // memory storage
@@ -56,6 +57,10 @@ const parseObjectField = (val) => {
 router.post('/', protect, authorize(['Service Provider', 'Admin']), conditionalUpload, async (req, res) => {
   try {
     const uid = req.user.id;
+    if (!uid || !mongoose.Types.ObjectId.isValid(uid)) {
+      console.warn('Invalid user id on profile create/update:', uid);
+      return res.status(400).json({ message: 'Invalid authenticated user id' });
+    }
     const body = req.body || {};
 
     const profileData = {
@@ -82,8 +87,8 @@ router.post('/', protect, authorize(['Service Provider', 'Admin']), conditionalU
 
     return res.json({ profile });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Failed to save profile' });
+    console.error('Profile save error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ message: 'Failed to save profile', error: err?.message });
   }
 });
 
@@ -91,6 +96,9 @@ router.post('/', protect, authorize(['Service Provider', 'Admin']), conditionalU
 router.post('/photo', protect, authorize(['Service Provider', 'Admin']), upload.single('picture'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file provided' });
+    if (!req.user?.id || !mongoose.Types.ObjectId.isValid(req.user.id)) {
+      return res.status(400).json({ message: 'Invalid authenticated user id' });
+    }
     const url = await uploadToCloudinary(req.file);
     if (!url) throw new Error('Upload failed');
     let profile = await Profile.findOne({ user: req.user.id });
@@ -102,20 +110,23 @@ router.post('/photo', protect, authorize(['Service Provider', 'Admin']), upload.
     }
     return res.json({ url, profile });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Photo upload failed' });
+    console.error('Photo upload error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ message: 'Photo upload failed', error: err?.message });
   }
 });
 
 // Get my profile (protected)
 router.get('/me', protect, async (req, res) => {
   try {
+    if (!req.user?.id || !mongoose.Types.ObjectId.isValid(req.user.id)) {
+      return res.status(400).json({ message: 'Invalid authenticated user id' });
+    }
     const profile = await Profile.findOne({ user: req.user.id }).populate('user', 'name email role');
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
     return res.json({ profile });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Unable to fetch profile' });
+    console.error('Fetch my profile error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ message: 'Unable to fetch profile', error: err?.message });
   }
 });
 
@@ -123,12 +134,15 @@ router.get('/me', protect, async (req, res) => {
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid userId parameter' });
+    }
     const profile = await Profile.findOne({ user: userId }).populate('user', 'name role');
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
     return res.json({ profile });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Unable to fetch profile' });
+    console.error('Fetch public profile error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ message: 'Unable to fetch profile', error: err?.message });
   }
 });
 
