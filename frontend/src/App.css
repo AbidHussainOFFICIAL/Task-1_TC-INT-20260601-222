@@ -151,3 +151,76 @@ p.form-footer a {
 .dashboard-shell button:hover {
   background: #dc2626;
 }
+
+/* Service Listings Polish Styles */
+.service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.22s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 24px -8px rgba(15, 23, 42, 0.08);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.category-badge:hover {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.btn-edit, .btn-delete {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-edit {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.btn-edit:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: scale(1.02);
+}
+
+.btn-delete {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #ef4444;
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+  transform: scale(1.02);
+}
+
+.btn-delete:active, .btn-edit:active {
+  transform: scale(0.98);
+}
+

@@ -255,11 +255,11 @@ export default function Dashboard() {
           ) : (
             <div style={{ display: 'grid', gap: 16 }}>
               {services.map((svc) => (
-                <div key={svc._id} style={{ display: 'flex', flexDirection: 'column', gap: 12, border: '1px solid #e2e8f0', borderRadius: 18, padding: 20, background: '#ffffff', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <div key={svc._id} className="service-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                     <div>
                       <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: '#0f172a' }}>{svc.title}</h3>
-                      <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: 999, background: '#f1f5f9', color: '#475569', fontSize: '0.8rem', fontWeight: 600 }}>
+                      <span className="category-badge">
                         {svc.category}
                       </span>
                     </div>
@@ -273,14 +273,14 @@ export default function Dashboard() {
                     <button
                       type="button"
                       onClick={() => handleEditClick(svc)}
-                      style={{ padding: '6px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 8, cursor: 'pointer', fontWeight: 600, color: '#0f172a' }}
+                      className="btn-edit"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDeleteClick(svc._id)}
-                      style={{ padding: '6px 12px', background: '#fee2e2', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, color: '#dc2626' }}
+                      className="btn-delete"
                     >
                       Delete
                     </button>
