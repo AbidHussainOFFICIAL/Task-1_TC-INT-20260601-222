@@ -8,6 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 const authRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/profile');
 
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
@@ -16,6 +17,7 @@ if (!mongoUri) {
 }
 
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
