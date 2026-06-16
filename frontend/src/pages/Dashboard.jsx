@@ -25,6 +25,8 @@ export default function Dashboard() {
   const [customCategory, setCustomCategory] = useState('');
   const [price, setPrice] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('');
+  const [picture, setPicture] = useState(null);
+  const [picturePreview, setPicturePreview] = useState('');
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
 
@@ -54,6 +56,8 @@ export default function Dashboard() {
     setCustomCategory('');
     setPrice('');
     setDeliveryTime('');
+    setPicture(null);
+    setPicturePreview('');
     setEditingServiceId(null);
     setFormError(null);
     setIsFormOpen(false);
@@ -72,6 +76,8 @@ export default function Dashboard() {
     setPrice(svc.price);
     setDeliveryTime(svc.deliveryTime);
     setEditingServiceId(svc._id);
+    setPicture(null);
+    setPicturePreview(svc.imageUrl || '');
     setIsFormOpen(true);
   };
 
@@ -81,9 +87,18 @@ export default function Dashboard() {
     }
     try {
       await api.delete(`/api/services/${svcId}`);
-      setServices(services.filter(s => s._id !== svcId));
+      setServices(services.map(s => s._id === svcId ? { ...s, active: false } : s));
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete service listing.');
+    }
+  };
+
+  const handleRestoreClick = async (svcId) => {
+    try {
+      const res = await api.put(`/api/services/${svcId}`, { active: true });
+      setServices(services.map(s => s._id === svcId ? res.data.service : s));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to restore service listing.');
     }
   };
 
@@ -98,21 +113,33 @@ export default function Dashboard() {
       return;
     }
 
+    const numPrice = Number(price);
+    if (isNaN(numPrice) || numPrice < 5 || !Number.isInteger(numPrice)) {
+      setFormError('Price must be an integer of at least $5 USD.');
+      return;
+    }
+
     setFormSubmitting(true);
-    const svcData = {
-      title: title.trim(),
-      description: description.trim(),
-      category: finalCategory,
-      price: Number(price),
-      deliveryTime: Number(deliveryTime),
-    };
+    const formData = new FormData();
+    formData.append('title', title.trim());
+    formData.append('description', description.trim());
+    formData.append('category', finalCategory);
+    formData.append('price', numPrice);
+    formData.append('deliveryTime', Number(deliveryTime));
+    if (picture) {
+      formData.append('picture', picture);
+    }
 
     try {
       if (editingServiceId) {
-        const res = await api.put(`/api/services/${editingServiceId}`, svcData);
+        const res = await api.put(`/api/services/${editingServiceId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         setServices(services.map(s => s._id === editingServiceId ? res.data.service : s));
       } else {
-        const res = await api.post('/api/services', svcData);
+        const res = await api.post('/api/services', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         setServices([...services, res.data.service]);
       }
       handleResetForm();
@@ -205,7 +232,8 @@ export default function Dashboard() {
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="99"
-                      min="0"
+                      min="5"
+                      step="1"
                       required
                     />
                   </label>
@@ -222,6 +250,31 @@ export default function Dashboard() {
                     />
                   </label>
                 </div>
+
+                <label>
+                  Service Thumbnail Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      setPicture(file);
+                      if (file) {
+                        setPicturePreview(URL.createObjectURL(file));
+                      } else {
+                        setPicturePreview('');
+                      }
+                    }}
+                    style={{ padding: '8px 10px', borderRadius: 12, border: '1px solid #cbd5e1' }}
+                  />
+                </label>
+
+                {picturePreview && (
+                  <div style={{ marginTop: 8 }}>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '0.9rem', color: '#64748b' }}>Preview / Current Image:</p>
+                    <img src={picturePreview} alt="Preview" style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                  </div>
+                )}
 
                 {formError && <p style={{ color: '#dc2626', margin: 0 }}>{formError}</p>}
 
@@ -255,10 +308,17 @@ export default function Dashboard() {
           ) : (
             <div style={{ display: 'grid', gap: 16 }}>
               {services.map((svc) => (
-                <div key={svc._id} className="service-card">
+                <div key={svc._id} className="service-card" style={{ opacity: svc.active === false ? 0.7 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                     <div>
-                      <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: '#0f172a' }}>{svc.title}</h3>
+                      <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: '#0f172a' }}>
+                        {svc.title}
+                        {svc.active === false && (
+                          <span style={{ marginLeft: 8, padding: '4px 10px', borderRadius: 999, background: '#f1f5f9', color: '#64748b', fontSize: '0.8rem', fontWeight: 600 }}>
+                            Archived
+                          </span>
+                        )}
+                      </h3>
                       <span className="category-badge">
                         {svc.category}
                       </span>
@@ -268,7 +328,12 @@ export default function Dashboard() {
                       <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 2 }}>{svc.deliveryTime} day{svc.deliveryTime > 1 ? 's' : ''} delivery</div>
                     </div>
                   </div>
-                  <p style={{ margin: 0, color: '#475569', fontSize: '0.95rem', lineHeight: 1.5 }}>{svc.description}</p>
+                  <div style={{ display: 'flex', gap: 16, marginTop: 4, alignItems: 'flex-start' }}>
+                    {svc.imageUrl && (
+                      <img src={svc.imageUrl} alt={svc.title} style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 12, border: '1px solid #e2e8f0', flexShrink: 0 }} />
+                    )}
+                    <p style={{ margin: 0, color: '#475569', fontSize: '0.95rem', lineHeight: 1.5, flex: 1 }}>{svc.description}</p>
+                  </div>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: 12, marginTop: 4 }}>
                     <button
                       type="button"
@@ -277,13 +342,40 @@ export default function Dashboard() {
                     >
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteClick(svc._id)}
-                      className="btn-delete"
-                    >
-                      Delete
-                    </button>
+                    {svc.active === false ? (
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreClick(svc._id)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          background: '#f0fdf4',
+                          border: '1px solid #dcfce7',
+                          color: '#15803d',
+                          transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = '#dcfce7';
+                          e.target.style.transform = 'scale(1.02)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = '#f0fdf4';
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
+                        Restore
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteClick(svc._id)}
+                        className="btn-delete"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

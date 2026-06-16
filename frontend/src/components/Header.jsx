@@ -13,6 +13,7 @@ export default function Header() {
         <span>{user.role ? ` • ${user.role}` : ''}</span>
       </div>
       <div className="header-links">
+        <Link to="/marketplace">Marketplace</Link>
         <Link to="/dashboard">Dashboard</Link>
         {user.role === 'Service Provider' && <Link to="/profile/complete">Complete Profile</Link>}
         <button onClick={logout}>Logout</button>

@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CompleteProfile from './pages/CompleteProfile';
 import ProviderProfileView from './pages/ProviderProfileView';
+import MarketplaceExplorer from './pages/MarketplaceExplorer';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import './App.css';
@@ -21,6 +22,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/profile/complete" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
             <Route path="/profile/:userId" element={<ProviderProfileView />} />
+            <Route path="/marketplace" element={<ProtectedRoute><MarketplaceExplorer /></ProtectedRoute>} />
             <Route
               path="/dashboard"
               element={

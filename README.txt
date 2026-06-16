@@ -17,4 +17,5 @@ amazing complete with full frontend connect all pages together make sure navigat
 Confirm categories: fixed list initially
 services support images (thumbnails/gallery) now
 Any pricing constraints (min/max) or currency handling required both
-Prefer soft-delete (archival) or permanent deletes
+Prefer soft-delete (archival)
+

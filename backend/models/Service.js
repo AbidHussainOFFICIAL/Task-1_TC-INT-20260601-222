@@ -32,6 +32,14 @@ const serviceSchema = new mongoose.Schema(
       required: true,
       min: 1, // in days
     },
+    imageUrl: {
+      type: String,
+      default: '',
+    },
+    active: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
