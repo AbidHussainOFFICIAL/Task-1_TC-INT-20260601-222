@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Users, ShoppingCart, Briefcase, Package, ChartBar, Star } from 'phosphor-react';
 import api from '../services/api';
 import DashboardHeader from '../components/DashboardHeader';
 import StatCard from '../components/StatCard';
@@ -51,19 +52,19 @@ export default function AdminDashboard() {
             <StatCard
               label="Total Users"
               value={stats.stats.totalUsers}
-              icon="👥"
+              icon={<Users size={24} weight="bold" />}
               accent="#3b82f6"
             />
             <StatCard
               label="Customers"
               value={stats.stats.customerCount}
-              icon="🛒"
+              icon={<ShoppingCart size={24} weight="bold" />}
               accent="#10b981"
             />
             <StatCard
               label="Providers"
               value={stats.stats.providerCount}
-              icon="💼"
+              icon={<Briefcase size={24} weight="bold" />}
               accent="#8b5cf6"
             />
           </div>
@@ -73,19 +74,19 @@ export default function AdminDashboard() {
             <StatCard
               label="Active Services"
               value={stats.stats.totalActiveServices}
-              icon="📦"
+              icon={<Package size={24} weight="bold" />}
               accent="#f59e0b"
             />
             <StatCard
               label="Total Projects"
               value={stats.stats.totalProjects}
-              icon="📊"
+              icon={<ChartBar size={24} weight="bold" />}
               accent="#06b6d4"
             />
             <StatCard
               label="Total Reviews"
               value={stats.stats.totalReviews}
-              icon="⭐"
+              icon={<Star size={24} weight="bold" />}
               accent="#ec4899"
             />
           </div>

@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Star } from 'phosphor-react';
 import api from '../services/api';
 import ProfileCard from '../components/ProfileCard';
 
-function StarDisplay({ rating, size = '1.3rem' }) {
+function StarDisplay({ rating, size = 24 }) {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     let fill = '#cbd5e1';
     if (rating >= i) fill = '#f59e0b';
     else if (rating >= i - 0.5) fill = '#fcd34d';
     stars.push(
-      <span key={i} style={{ fontSize: size, color: fill, lineHeight: 1 }}>★</span>
+      <Star key={i} size={size} weight="fill" color={fill} />
     );
   }
   return <span style={{ display: 'inline-flex', gap: 2 }}>{stars}</span>;

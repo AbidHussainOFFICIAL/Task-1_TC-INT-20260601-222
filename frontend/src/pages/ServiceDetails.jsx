@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Briefcase } from 'phosphor-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -110,7 +111,9 @@ export default function ServiceDetails() {
           {service.imageUrl ? (
             <img src={service.imageUrl} alt={service.title} className="service-details-image" />
           ) : (
-            <div className="service-details-placeholder">💼</div>
+            <div className="service-details-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Briefcase size={64} weight="bold" color="#94a3b8" />
+            </div>
           )}
         </div>
 

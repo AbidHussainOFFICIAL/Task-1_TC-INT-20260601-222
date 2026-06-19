@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { CurrencyDollar, Wrench, HourglassHigh, Star } from 'phosphor-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import DashboardHeader from '../components/DashboardHeader';
@@ -20,11 +21,17 @@ function formatCurrency(amount) {
 function RatingStars({ rating }) {
   const fullStars = Math.floor(rating);
   const hasHalf = rating - fullStars >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+  
   return (
-    <span style={{ fontSize: '0.95rem', color: '#f59e0b', letterSpacing: 1 }}>
-      {'★'.repeat(fullStars)}
-      {hasHalf ? '½' : ''}
-      {'☆'.repeat(5 - fullStars - (hasHalf ? 1 : 0))}
+    <span style={{ display: 'inline-flex', gap: 2, alignItems: 'center', color: '#f59e0b' }}>
+      {Array(fullStars).fill(0).map((_, i) => (
+        <Star key={`full-${i}`} size={18} weight="fill" />
+      ))}
+      {hasHalf && <Star size={18} weight="fill" style={{ clipPath: 'inset(0 50% 0 0)' }} />}
+      {Array(emptyStars).fill(0).map((_, i) => (
+        <Star key={`empty-${i}`} size={18} weight="regular" />
+      ))}
     </span>
   );
 }
@@ -215,25 +222,25 @@ export default function ProviderDashboard() {
           <StatCard
             label="Total Earnings"
             value={formatCurrency(stats.stats.totalEarnings)}
-            icon="💰"
+            icon={<CurrencyDollar size={24} weight="bold" />}
             accent="#10b981"
           />
           <StatCard
             label="Active Projects"
             value={stats.stats.activeCount}
-            icon="🔧"
+            icon={<Wrench size={24} weight="bold" />}
             accent="#3b82f6"
           />
           <StatCard
             label="Pending Requests"
             value={stats.stats.pendingCount}
-            icon="⏳"
+            icon={<HourglassHigh size={24} weight="bold" />}
             accent="#f59e0b"
           />
           <StatCard
             label="Average Rating"
             value={Number(stats.stats.averageRating).toFixed(1)}
-            icon="⭐"
+            icon={<Star size={24} weight="bold" />}
             accent="#8b5cf6"
           >
             <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>

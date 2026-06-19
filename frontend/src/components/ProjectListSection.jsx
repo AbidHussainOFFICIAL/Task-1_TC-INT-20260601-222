@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Star, CaretUp } from 'phosphor-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import ProjectTimeline from './ProjectTimeline';
@@ -190,7 +191,17 @@ export default function ProjectListSection({
                             transition: 'background 0.2s ease',
                           }}
                         >
-                          {openReviewPanels[project._id] ? '▲ Hide Review Form' : '★ Leave a Review'}
+                          {openReviewPanels[project._id] ? (
+                            <>
+                              <CaretUp size={16} weight="bold" style={{ marginRight: 4 }} />
+                              Hide Review Form
+                            </>
+                          ) : (
+                            <>
+                              <Star size={16} weight="fill" style={{ marginRight: 4 }} />
+                              Leave a Review
+                            </>
+                          )}
                         </button>
 
                         {openReviewPanels[project._id] && (

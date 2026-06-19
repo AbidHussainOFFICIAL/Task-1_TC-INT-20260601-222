@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Briefcase } from 'phosphor-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -219,7 +220,9 @@ export default function MarketplaceExplorer() {
                         {svc.imageUrl ? (
                           <img src={svc.imageUrl} alt={svc.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
-                          <div style={{ color: '#94a3b8', fontSize: '2.5rem', fontWeight: 300 }}>💼</div>
+                          <div style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                            <Briefcase size={48} weight="bold" />
+                          </div>
                         )}
                       </div>
                       

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Clipboard, CheckCircle, CreditCard } from 'phosphor-react';
 import api from '../services/api';
 import DashboardHeader from '../components/DashboardHeader';
 import StatCard from '../components/StatCard';
@@ -61,19 +62,19 @@ export default function CustomerDashboard() {
           <StatCard
             label="Active Requests"
             value={stats.stats.activeCount}
-            icon="📋"
+            icon={<Clipboard size={24} weight="bold" />}
             accent="#3b82f6"
           />
           <StatCard
             label="Completed Projects"
             value={stats.stats.completedCount}
-            icon="✅"
+            icon={<CheckCircle size={24} weight="bold" />}
             accent="#10b981"
           />
           <StatCard
             label="Total Spend"
             value={formatCurrency(stats.stats.totalSpend)}
-            icon="💳"
+            icon={<CreditCard size={24} weight="bold" />}
             accent="#8b5cf6"
           />
         </div>

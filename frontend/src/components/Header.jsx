@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { List, X } from 'phosphor-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
@@ -59,8 +60,9 @@ export default function Header() {
           aria-controls="site-navigation"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           onClick={() => setMenuOpen((open) => !open)}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}
         >
-          <span className="header-menu-icon" aria-hidden="true" />
+          {menuOpen ? <X size={24} weight="bold" /> : <List size={24} weight="bold" />}
         </button>
       </div>
 
