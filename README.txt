@@ -1,21 +1,43 @@
-amazing Feature 1 is complete scan Implementation.md and create full plan for Feature 2
+========================================================================
+TEYZIX CORE INTERNSHIP PROGRAM - JUNE BATCH 2026
+Task 1: Multi-Vendor Service Marketplace Platform
+Intern Name: Abid Hussain
+Ref ID: TC-INT-20260601-222
+Domain: Full Stack Web Development
+========================================================================
 
-Start implementation
+1. PROJECT OVERVIEW
+This is a comprehensive full-stack Multi-Vendor Service Marketplace 
+Platform built using the MERN stack. It simulates real-world systems 
+like Fiverr and Upwork, enabling customers to browse and filter services, 
+submit detailed project requests, and track progress through a dynamic 
+workflow (Pending -> Accepted -> In Progress -> Completed -> Delivered). 
+It features three dedicated dashboards for Customers, Service Providers, 
+and Admins, fully complete with secure JWT-based authentication and a 
+star-rating review system.
 
-amazing run install/build checks and test and more improve
+2. TECH STACK UTILIZED
+• Frontend: React.js (Vite), Tailwind CSS, React Router, Axios
+• Backend: Node.js, Express.js
+• Database: MongoDB Atlas
+• Utilities: JSON Web Tokens (JWT), Bcryptjs, Cloudinary SDK
 
-Suggested final polish
-Add a top-level Header with user info and logout
-Create a /dashboard landing page with role-aware content
-Add form validation messages for missing email / weak password
-Add server-side 400/500 error handling in responses
+3. LOCAL INSTALLATION & RUN GUIDELINES
+Make sure you create your own matching environmental variables based on 
+the provided `.env.example` files before starting the applications.
 
-inspect Cloudinary config and repair the empty image URL response
+Step 1: Set Up and Run the Backend Server
+  cd backend
+  npm install
+  npm start (or npm run dev)
 
-amazing complete with full frontend connect all pages together make sure navigation happen smoothly and all things perfect and correct
+Step 2: Set Up and Run the Frontend Client
+  cd ../frontend
+  npm install
+  npm run dev
 
-Confirm categories: fixed list initially
-services support images (thumbnails/gallery) now
-Any pricing constraints (min/max) or currency handling required both
-Prefer soft-delete (archival)
-
+4. EXPECTED DELIVERABLES INCLUDED IN ZIP
+• Clean, modular frontend and backend source code (node_modules removed)
+• Environment configuration template (.env.example)
+• Mandatory working demo walkthrough video (demo_video.mp4)
+========================================================================
