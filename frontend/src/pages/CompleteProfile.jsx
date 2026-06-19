@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -113,6 +114,7 @@ export default function CompleteProfile() {
       const returnedUser = res?.data?.profile?.user;
       const userId = returnedUser?._id || returnedUser?.id || returnedUser;
       if (userId) {
+        toast.success('Profile saved successfully!');
         navigate(`/profile/${userId}`);
       } else {
         console.warn('Profile created but no user id returned, redirecting to dashboard');

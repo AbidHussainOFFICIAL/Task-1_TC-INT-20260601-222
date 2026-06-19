@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useDebounce } from '../hooks/useDebounce';
 
 const CATEGORIES = [
   'All',
@@ -12,12 +15,15 @@ const CATEGORIES = [
 ];
 
 export default function MarketplaceExplorer() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters
-  const [search, setSearch] = useState('');
+  // Filters — search input is debounced before API calls
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 400);
   const [category, setCategory] = useState('All');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -29,14 +35,13 @@ export default function MarketplaceExplorer() {
   const [deadline, setDeadline] = useState('');
   const [orderSubmitting, setOrderSubmitting] = useState(false);
   const [orderError, setOrderError] = useState(null);
-  const [orderSuccess, setOrderSuccess] = useState(null);
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const params = {};
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
       if (category && category !== 'All') params.category = category;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
@@ -48,7 +53,7 @@ export default function MarketplaceExplorer() {
     } finally {
       setLoading(false);
     }
-  }, [search, category, minPrice, maxPrice]);
+  }, [debouncedSearch, category, minPrice, maxPrice]);
 
   useEffect(() => {
     fetchServices();
@@ -60,6 +65,16 @@ export default function MarketplaceExplorer() {
   };
 
   const handleOrderClick = (svc) => {
+    if (!user) {
+      toast.error('Please log in to place an order.');
+      navigate('/login');
+      return;
+    }
+    if (user.role !== 'Customer') {
+      toast.error('Only customers can place service orders.');
+      return;
+    }
+
     setSelectedService(svc);
     setRequirements('');
     setBudget(svc.price);
@@ -68,13 +83,11 @@ export default function MarketplaceExplorer() {
     futureDate.setDate(futureDate.getDate() + deliveryDays);
     setDeadline(futureDate.toISOString().split('T')[0]);
     setOrderError(null);
-    setOrderSuccess(null);
   };
 
   const handleOrderSubmit = async (e) => {
     e.preventDefault();
     setOrderError(null);
-    setOrderSuccess(null);
 
     if (!requirements.trim() || budget === '' || !deadline) {
       setOrderError('All fields are required.');
@@ -89,28 +102,26 @@ export default function MarketplaceExplorer() {
         budget: Number(budget),
         deadline,
       });
-      setOrderSuccess('Your service request has been submitted successfully!');
-      setTimeout(() => {
-        setSelectedService(null);
-        setOrderSuccess(null);
-      }, 2000);
+      toast.success('Your service request has been submitted successfully!');
+      setSelectedService(null);
     } catch (err) {
       setOrderError(err.response?.data?.message || 'Failed to submit order request.');
+      toast.error(err.response?.data?.message || 'Failed to submit order request.');
     } finally {
       setOrderSubmitting(false);
     }
   };
 
   return (
-    <div className="dashboard-shell" style={{ maxWidth: 1000, margin: '0 auto' }}>
+    <div className="dashboard-shell marketplace-page" style={{ maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ marginBottom: 30 }}>
         <h1 style={{ margin: 0, fontSize: '2rem', color: '#0f172a' }}>Marketplace</h1>
         <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '1.1rem' }}>Find the perfect service for your needs</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 30, alignItems: 'start' }}>
+      <div className="marketplace-layout">
         {/* Sidebar Filters */}
-        <div style={{ background: '#f8fafc', padding: 24, borderRadius: 18, border: '1px solid #e2e8f0', position: 'sticky', top: 24 }}>
+        <div className="marketplace-filters">
           <h3 style={{ margin: '0 0 20px 0', color: '#0f172a', fontSize: '1.25rem' }}>Filters</h3>
           
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -119,8 +130,8 @@ export default function MarketplaceExplorer() {
               <input
                 type="text"
                 placeholder="Keywords..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 style={{ width: '100%', padding: '12px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '1rem' }}
               />
             </div>
@@ -171,7 +182,7 @@ export default function MarketplaceExplorer() {
         </div>
 
         {/* Results Area */}
-        <div>
+        <div className="marketplace-results">
           {loading ? (
             <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
               <h2>Loading services...</h2>
@@ -186,11 +197,10 @@ export default function MarketplaceExplorer() {
               <p style={{ margin: 0, fontSize: '1.1rem' }}>Try adjusting your filters or search terms.</p>
               <button 
                 onClick={() => {
-                  setSearch('');
+                  setSearchInput('');
                   setCategory('All');
                   setMinPrice('');
                   setMaxPrice('');
-                  fetchServices();
                 }}
                 style={{ marginTop: 24, padding: '10px 20px', background: '#e2e8f0', color: '#334155', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 600 }}
               >
@@ -202,10 +212,10 @@ export default function MarketplaceExplorer() {
               <p style={{ marginBottom: 20, color: '#64748b', fontWeight: 500 }}>Showing {services.length} result{services.length !== 1 ? 's' : ''}</p>
               <div style={{ display: 'grid', gap: 20 }}>
                 {services.map(svc => (
-                  <div key={svc._id} className="service-card" style={{ transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'default' }}>
-                    <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+                  <div key={svc._id} className="service-card marketplace-service-card">
+                    <div className="marketplace-card-inner">
                       {/* Thumbnail Section */}
-                      <div style={{ width: 150, height: 100, borderRadius: 12, overflow: 'hidden', background: '#f1f5f9', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+                      <div className="marketplace-card-thumb">
                         {svc.imageUrl ? (
                           <img src={svc.imageUrl} alt={svc.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
@@ -214,21 +224,29 @@ export default function MarketplaceExplorer() {
                       </div>
                       
                       {/* Content Section */}
-                      <div style={{ flex: 1 }}>
+                      <div className="marketplace-card-content">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                           <span className="category-badge">{svc.category}</span>
                           <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>by <strong>{svc.provider?.name || 'Unknown'}</strong></span>
                         </div>
-                        <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', color: '#0f172a' }}>{svc.title}</h3>
+                        <Link to={`/services/${svc._id}`} className="marketplace-card-title">
+                          {svc.title}
+                        </Link>
                         <p style={{ margin: 0, color: '#475569', fontSize: '0.95rem', lineHeight: 1.5 }}>{svc.description}</p>
                       </div>
                       
                       {/* Actions/Price Section */}
-                      <div style={{ textAlign: 'right', minWidth: 140, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div className="marketplace-card-actions">
                         <div>
                           <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669' }}>${svc.price}</div>
                           <div style={{ fontSize: '0.9rem', color: '#64748b', marginTop: 4 }}>{svc.deliveryTime} day{svc.deliveryTime > 1 ? 's' : ''} delivery</div>
                         </div>
+                        <Link 
+                          to={`/services/${svc._id}`}
+                          style={{ display: 'inline-block', padding: '8px 16px', background: '#eef2ff', color: '#4338ca', textDecoration: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', textAlign: 'center' }}
+                        >
+                          View Details
+                        </Link>
                         <Link 
                           to={`/profile/${svc.provider?._id}`}
                           style={{ display: 'inline-block', padding: '8px 16px', background: '#f1f5f9', color: '#3b82f6', textDecoration: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', transition: 'background-color 0.2s' }}
@@ -295,12 +313,7 @@ export default function MarketplaceExplorer() {
               You are requesting a custom order for <strong>{selectedService.title}</strong> by {selectedService.provider?.name || 'freelancer'}.
             </p>
 
-            {orderSuccess ? (
-              <div style={{ padding: '16px 20px', borderRadius: 12, background: '#ecfdf5', color: '#065f46', fontWeight: 500, marginBottom: 20 }}>
-                {orderSuccess}
-              </div>
-            ) : (
-              <form onSubmit={handleOrderSubmit} className="auth-form" style={{ display: 'grid', gap: 16 }}>
+            <form onSubmit={handleOrderSubmit} className="auth-form" style={{ display: 'grid', gap: 16 }}>
                 <label>
                   Requirements
                   <textarea
@@ -357,7 +370,6 @@ export default function MarketplaceExplorer() {
                   </button>
                 </div>
               </form>
-            )}
           </div>
         </div>
       )}

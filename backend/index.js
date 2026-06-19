@@ -12,6 +12,7 @@ const profileRoutes = require('./routes/profile');
 const serviceRoutes = require('./routes/service');
 const projectRoutes = require('./routes/project');
 const reviewRoutes = require('./routes/review');
+const dashboardRoutes = require('./routes/dashboard');
 
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
@@ -24,6 +25,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
