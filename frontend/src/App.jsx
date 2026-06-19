@@ -16,7 +16,11 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
+        <Toaster
+          position="top-center"
+          toastOptions={{ duration: 3500 }}
+          containerStyle={{ top: 12 }}
+        />
         <div className="app-shell">
           <Header />
           <Routes>

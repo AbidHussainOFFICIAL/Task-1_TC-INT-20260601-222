@@ -1,13 +1,13 @@
 const express = require('express');
 const Project = require('../models/Project');
 const Service = require('../models/Service');
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const mongoose = require('mongoose');
 
 const router = express.Router();
 
-// Submit a new project/request (Authenticated users/Customers)
-router.post('/', protect, async (req, res) => {
+// Submit a new project/request (Customers only)
+router.post('/', protect, authorize(['Customer']), async (req, res) => {
   const { serviceId, requirements, budget, deadline } = req.body;
 
   if (!serviceId || !requirements || budget === undefined || !deadline) {
@@ -30,8 +30,12 @@ router.post('/', protect, async (req, res) => {
 
   try {
     const service = await Service.findById(serviceId);
-    if (!service) {
+    if (!service || !service.active) {
       return res.status(404).json({ message: 'Service not found.' });
+    }
+
+    if (service.provider.toString() === req.user.id) {
+      return res.status(400).json({ message: 'You cannot order your own service.' });
     }
 
     const project = await Project.create({

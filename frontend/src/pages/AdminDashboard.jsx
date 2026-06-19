@@ -111,35 +111,37 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Count</th>
-                  <th>Share</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(projectsByStatus).map(([status, count]) => {
-                  const share = stats.stats.totalProjects
-                    ? ((count / stats.stats.totalProjects) * 100).toFixed(1)
-                    : '0.0';
-                  return (
-                    <tr key={status}>
-                      <td>
-                        <span
-                          className="admin-status-dot"
-                          style={{ backgroundColor: STATUS_COLORS[status] || '#94a3b8' }}
-                        />
-                        {status}
-                      </td>
-                      <td>{count}</td>
-                      <td>{share}%</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Count</th>
+                    <th>Share</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(projectsByStatus).map(([status, count]) => {
+                    const share = stats.stats.totalProjects
+                      ? ((count / stats.stats.totalProjects) * 100).toFixed(1)
+                      : '0.0';
+                    return (
+                      <tr key={status}>
+                        <td>
+                          <span
+                            className="admin-status-dot"
+                            style={{ backgroundColor: STATUS_COLORS[status] || '#94a3b8' }}
+                          />
+                          {status}
+                        </td>
+                        <td>{count}</td>
+                        <td>{share}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {stats.stats.adminCount > 0 && (
               <p style={{ marginTop: 16, fontSize: '0.88rem', color: '#64748b' }}>

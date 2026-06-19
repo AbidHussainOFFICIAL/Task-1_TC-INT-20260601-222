@@ -164,54 +164,52 @@ export default function CompleteProfile() {
         )}
 
         <div style={{ marginTop: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>Experience</h3>
-            <button type="button" onClick={handleAddExperience} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>
+          <div className="section-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 12 }}>
+            <h3 style={{ margin: 0 }}>Experience</h3>
+            <button type="button" className="btn-action" style={{ background: 'white', border: '1px solid #cbd5e1' }} onClick={handleAddExperience}>
               Add Experience
             </button>
           </div>
           {experience.length === 0 && <p style={{ color: '#6b7280' }}>No experience items listed yet.</p>}
           {experience.map((item, idx) => (
-            <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: 14, padding: 14, marginBottom: 12, position: 'relative' }}>
+            <div key={idx} className="form-block">
               <button
                 type="button"
+                className="form-block-remove"
                 onClick={() => handleRemoveExperience(idx)}
-                style={{ position: 'absolute', top: 10, right: 10, background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: '0.85rem' }}
               >
                 Remove
               </button>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '90%' }}>
+              <div className="form-block-grid">
                 <input placeholder="Job Title (e.g. Lead Developer)" value={item.title} onChange={(e) => handleExperienceChange(idx, 'title', e.target.value)} />
                 <input placeholder="Company" value={item.company} onChange={(e) => handleExperienceChange(idx, 'company', e.target.value)} />
               </div>
-              <input placeholder="Period (e.g. 2021 - 2024)" value={item.period} onChange={(e) => handleExperienceChange(idx, 'period', e.target.value)} style={{ marginTop: 10 }} />
+              <input placeholder="Period (e.g. 2021 - 2024)" value={item.period} onChange={(e) => handleExperienceChange(idx, 'period', e.target.value)} style={{ marginTop: 10, width: '100%' }} />
               <textarea placeholder="Description of your responsibilities" value={item.description} onChange={(e) => handleExperienceChange(idx, 'description', e.target.value)} rows={3} style={{ marginTop: 10, width: '100%' }} />
             </div>
           ))}
         </div>
 
         <div style={{ marginTop: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>Portfolio</h3>
-            <button type="button" onClick={handleAddPortfolio} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>
+          <div className="section-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 12 }}>
+            <h3 style={{ margin: 0 }}>Portfolio</h3>
+            <button type="button" className="btn-action" style={{ background: 'white', border: '1px solid #cbd5e1' }} onClick={handleAddPortfolio}>
               Add item
             </button>
           </div>
           {portfolio.length === 0 && <p style={{ color: '#6b7280' }}>No portfolio items yet.</p>}
           {portfolio.map((item, idx) => (
-            <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: 14, padding: 14, marginBottom: 12, position: 'relative' }}>
+            <div key={idx} className="form-block">
               <button
                 type="button"
+                className="form-block-remove"
                 onClick={() => handleRemovePortfolio(idx)}
-                style={{ position: 'absolute', top: 10, right: 10, background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: '0.85rem' }}
               >
                 Remove
               </button>
-              <div style={{ width: '90%' }}>
-                <input placeholder="Title" value={item.title} onChange={(e) => handlePortfolioChange(idx, 'title', e.target.value)} />
-                <input placeholder="URL" value={item.url} onChange={(e) => handlePortfolioChange(idx, 'url', e.target.value)} style={{ marginTop: 10 }} />
-                <textarea placeholder="Description" value={item.description} onChange={(e) => handlePortfolioChange(idx, 'description', e.target.value)} rows={3} style={{ marginTop: 10 }} />
-              </div>
+              <input placeholder="Title" value={item.title} onChange={(e) => handlePortfolioChange(idx, 'title', e.target.value)} style={{ width: '100%' }} />
+              <input placeholder="URL" value={item.url} onChange={(e) => handlePortfolioChange(idx, 'url', e.target.value)} style={{ marginTop: 10, width: '100%' }} />
+              <textarea placeholder="Description" value={item.description} onChange={(e) => handlePortfolioChange(idx, 'description', e.target.value)} rows={3} style={{ marginTop: 10, width: '100%' }} />
             </div>
           ))}
         </div>

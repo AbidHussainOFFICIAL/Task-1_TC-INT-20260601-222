@@ -247,13 +247,13 @@ export default function ProviderDashboard() {
       )}
 
       <div style={{ marginTop: 32 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid #e2e8f0', paddingBottom: 12 }}>
-          <h2 style={{ margin: 0 }}>My Service Listings</h2>
+        <div className="section-header">
+          <h2>My Service Listings</h2>
           {!isFormOpen && (
             <button
               type="button"
+              className="btn-action btn-action-primary"
               onClick={() => setIsFormOpen(true)}
-              style={{ padding: '10px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 600, marginTop: 0 }}
             >
               Create New Service
             </button>
@@ -307,7 +307,7 @@ export default function ProviderDashboard() {
                 </label>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-two-col">
                 <label>
                   Price ($)
                   <input

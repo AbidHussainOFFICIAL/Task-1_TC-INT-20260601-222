@@ -3,13 +3,12 @@ import { useParams } from 'react-router-dom';
 import api from '../services/api';
 import ProfileCard from '../components/ProfileCard';
 
-// Renders filled, half, or empty stars based on a decimal rating
 function StarDisplay({ rating, size = '1.3rem' }) {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
-    let fill = '#cbd5e1'; // empty
-    if (rating >= i) fill = '#f59e0b';             // full
-    else if (rating >= i - 0.5) fill = '#fcd34d';  // half (visually lighter)
+    let fill = '#cbd5e1';
+    if (rating >= i) fill = '#f59e0b';
+    else if (rating >= i - 0.5) fill = '#fcd34d';
     stars.push(
       <span key={i} style={{ fontSize: size, color: fill, lineHeight: 1 }}>★</span>
     );
@@ -22,9 +21,12 @@ export default function ProviderProfileView() {
   const [profile, setProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
+      setError(null);
       try {
         const [profileRes, reviewsRes] = await Promise.all([
           api.get(`/api/profile/${userId}`),
@@ -34,31 +36,37 @@ export default function ProviderProfileView() {
         setReviews(reviewsRes.data.reviews || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Unable to load profile');
+      } finally {
+        setLoading(false);
       }
     })();
   }, [userId]);
 
-  if (error) return <div style={{ padding: 20 }}>{error}</div>;
-  if (!profile) return <div style={{ padding: 20 }}>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="page-loading" role="status">
+        <div className="page-loading-spinner" aria-hidden="true" />
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-shell" style={{ maxWidth: 700 }}>
+        <p style={{ color: '#dc2626' }}>{error}</p>
+      </div>
+    );
+  }
+
+  if (!profile) return null;
 
   const avg = profile.averageRating || 0;
   const count = profile.reviewCount || 0;
 
   return (
-    <div style={{ maxWidth: 1000, margin: '20px auto', padding: '0 16px' }}>
-
-      {/* ── Star Rating Banner ── */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 18,
-        background: 'linear-gradient(135deg, #fefce8 0%, #fff7ed 100%)',
-        border: '1px solid #fde68a',
-        borderRadius: 16,
-        padding: '18px 24px',
-        marginBottom: 20,
-        boxShadow: '0 2px 8px rgba(245,158,11,0.08)',
-      }}>
+    <div className="profile-page">
+      <div className="profile-rating-banner">
         <StarDisplay rating={avg} size="2rem" />
         <div>
           <span style={{ fontSize: '2rem', fontWeight: 800, color: '#92400e', lineHeight: 1 }}>
@@ -71,39 +79,29 @@ export default function ProviderProfileView() {
         </div>
       </div>
 
-      {/* ── Profile Card ── */}
       <ProfileCard profile={profile} />
 
-      {/* ── Review List ── */}
       {reviews.length > 0 && (
         <div style={{ marginTop: 28 }}>
           <h3 style={{ margin: '0 0 16px 0', fontSize: '1.15rem', color: '#0f172a' }}>
             Customer Reviews
           </h3>
-          <div style={{
-            display: 'grid',
-            gap: 14,
-            maxHeight: 520,
-            overflowY: 'auto',
-            paddingRight: 4,
-          }}>
+          <div className="review-list">
             {reviews.map((review) => (
-              <div key={review._id} style={{
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
-                borderRadius: 14,
-                padding: '16px 20px',
-                boxShadow: '0 1px 4px rgba(2,6,23,0.04)',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+              <div key={review._id} className="review-card">
+                <div className="review-card-top">
                   <div>
                     <StarDisplay rating={review.rating} size="1.1rem" />
                     <span style={{ marginLeft: 8, fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
                       {review.customer?.name || 'Anonymous'}
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                    {new Date(review.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                    {new Date(review.createdAt).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.94rem', color: '#475569', lineHeight: 1.55 }}>

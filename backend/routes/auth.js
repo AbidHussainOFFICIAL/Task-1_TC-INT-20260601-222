@@ -14,10 +14,21 @@ function createToken(user) {
   );
 }
 
+const VALID_ROLES = ['Customer', 'Service Provider', 'Admin'];
+
 router.post('/register', async (req, res) => {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Name, email, and password are required' });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters' });
+  }
+
+  const selectedRole = role || 'Customer';
+  if (!VALID_ROLES.includes(selectedRole)) {
+    return res.status(400).json({ message: 'Invalid role selected' });
   }
 
   try {
@@ -31,7 +42,7 @@ router.post('/register', async (req, res) => {
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      role: role || 'Customer',
+      role: selectedRole,
     });
 
     const token = createToken(user);

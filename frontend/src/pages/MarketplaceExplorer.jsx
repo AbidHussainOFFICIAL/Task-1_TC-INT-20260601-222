@@ -241,25 +241,16 @@ export default function MarketplaceExplorer() {
                           <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669' }}>${svc.price}</div>
                           <div style={{ fontSize: '0.9rem', color: '#64748b', marginTop: 4 }}>{svc.deliveryTime} day{svc.deliveryTime > 1 ? 's' : ''} delivery</div>
                         </div>
-                        <Link 
-                          to={`/services/${svc._id}`}
-                          style={{ display: 'inline-block', padding: '8px 16px', background: '#eef2ff', color: '#4338ca', textDecoration: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', textAlign: 'center' }}
-                        >
+                        <Link to={`/services/${svc._id}`} className="marketplace-card-btn marketplace-card-btn-details">
                           View Details
                         </Link>
-                        <Link 
-                          to={`/profile/${svc.provider?._id}`}
-                          style={{ display: 'inline-block', padding: '8px 16px', background: '#f1f5f9', color: '#3b82f6', textDecoration: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', transition: 'background-color 0.2s' }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#e2e8f0'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = '#f1f5f9'}
-                        >
+                        <Link to={`/profile/${svc.provider?._id}`} className="marketplace-card-btn marketplace-card-btn-provider">
                           View Provider
                         </Link>
                         <button
+                          type="button"
                           onClick={() => handleOrderClick(svc)}
-                          style={{ display: 'inline-block', padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', textAlign: 'center', transition: 'background-color 0.2s' }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                          className="marketplace-card-btn marketplace-card-btn-order"
                         >
                           Order Service
                         </button>
@@ -274,36 +265,13 @@ export default function MarketplaceExplorer() {
       </div>
 
       {selectedService && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.4)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: 20
-        }}>
-          <div className="dashboard-shell" style={{
-            width: '100%',
-            maxWidth: 550,
-            margin: 0,
-            position: 'relative',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          }}>
-            <button 
-              type="button" 
-              onClick={() => setSelectedService(null)} 
-              style={{
-                position: 'absolute',
-                top: 20, right: 20,
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                color: '#64748b'
-              }}
+        <div className="modal-overlay">
+          <div className="dashboard-shell modal-panel">
+            <button
+              type="button"
+              onClick={() => setSelectedService(null)}
+              className="modal-close"
+              aria-label="Close order dialog"
             >
               &times;
             </button>
@@ -326,7 +294,7 @@ export default function MarketplaceExplorer() {
                   />
                 </label>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="form-two-col">
                   <label>
                     Your Budget ($)
                     <input
@@ -353,18 +321,20 @@ export default function MarketplaceExplorer() {
 
                 {orderError && <p style={{ color: '#dc2626', margin: 0 }}>{orderError}</p>}
 
-                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                  <button 
-                    type="submit" 
-                    disabled={orderSubmitting} 
-                    style={{ flex: 1, padding: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 600 }}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }} className="modal-actions">
+                  <button
+                    type="submit"
+                    disabled={orderSubmitting}
+                    className="btn-action btn-action-primary"
+                    style={{ flex: 1 }}
                   >
                     {orderSubmitting ? 'Submitting Request...' : 'Submit Order Request'}
                   </button>
-                  <button 
-                    type="button" 
-                    onClick={() => setSelectedService(null)} 
-                    style={{ padding: '12px 20px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 600 }}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedService(null)}
+                    className="btn-action"
+                    style={{ background: '#e2e8f0', color: '#475569' }}
                   >
                     Cancel
                   </button>

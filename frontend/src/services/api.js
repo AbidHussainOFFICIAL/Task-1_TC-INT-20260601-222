@@ -5,6 +5,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000,
 });
 
 export function setAuthToken(token) {
@@ -15,15 +16,38 @@ export function setAuthToken(token) {
   }
 }
 
-api.interceptors.request.use(config => {
+api.interceptors.request.use((config) => {
   const stored = localStorage.getItem('auth');
   if (stored) {
-    const { token } = JSON.parse(stored);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const { token } = JSON.parse(stored);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch {
+      localStorage.removeItem('auth');
     }
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response?.status === 401
+      && !error.config?.url?.includes('/api/auth/login')
+      && !error.config?.url?.includes('/api/auth/me')
+      && !error.config?.url?.includes('/api/auth/register')
+    ) {
+      localStorage.removeItem('auth');
+      delete api.defaults.headers.common.Authorization;
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

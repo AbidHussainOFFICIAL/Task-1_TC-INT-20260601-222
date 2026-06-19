@@ -113,7 +113,7 @@ router.get('/:id', async (req, res) => {
       return res.status(400).json({ message: 'Invalid service ID' });
     }
     const service = await Service.findById(id).populate('provider', 'name email');
-    if (!service) {
+    if (!service || !service.active) {
       return res.status(404).json({ message: 'Service listing not found' });
     }
     return res.json({ service });

@@ -73,8 +73,9 @@ export default function ProjectListSection({
         return (
           <button
             type="button"
+            className="project-action-btn"
+            style={{ background: '#3b82f6', color: 'white' }}
             onClick={() => handleUpdateProjectStatus(_id, 'Accepted')}
-            style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
           >
             Accept Project
           </button>
@@ -84,8 +85,9 @@ export default function ProjectListSection({
         return (
           <button
             type="button"
+            className="project-action-btn"
+            style={{ background: '#10b981', color: 'white' }}
             onClick={() => handleUpdateProjectStatus(_id, 'In Progress')}
-            style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
           >
             Start Work
           </button>
@@ -95,8 +97,9 @@ export default function ProjectListSection({
         return (
           <button
             type="button"
+            className="project-action-btn"
+            style={{ background: '#f59e0b', color: 'white' }}
             onClick={() => handleUpdateProjectStatus(_id, 'Completed')}
-            style={{ padding: '8px 16px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
           >
             Mark as Completed
           </button>
@@ -106,8 +109,9 @@ export default function ProjectListSection({
       return (
         <button
           type="button"
+          className="project-action-btn"
+          style={{ background: '#10b981', color: 'white' }}
           onClick={() => handleUpdateProjectStatus(_id, 'Delivered')}
-          style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
         >
           Accept Delivery
         </button>
@@ -134,16 +138,17 @@ export default function ProjectListSection({
             const partner = isProvider ? project.customer : project.provider;
             return (
               <div key={project._id} className="service-card" style={{ borderLeft: '4px solid #3b82f6', background: '#ffffff' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                <div className="project-card-header">
                   <div>
                     <h4 style={{ margin: '0 0 4px 0', fontSize: '1.15rem', color: '#0f172a' }}>
                       {project.service?.title || 'Custom Service Requested'}
                     </h4>
                     <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: 8 }}>
-                      {isProvider ? 'Client' : 'Provider'}: <strong>{partner?.name || 'User'}</strong> ({partner?.email})
+                      {isProvider ? 'Client' : 'Provider'}: <strong>{partner?.name || 'User'}</strong>
+                      <span className="project-card-email"> ({partner?.email})</span>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
+                  <div className="project-card-meta">
                     <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#059669' }}>${project.budget}</div>
                     <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>
                       Deadline: {new Date(project.deadline).toLocaleDateString()}
@@ -258,7 +263,7 @@ export default function ProjectListSection({
                   </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                <div className="project-actions-row">
                   {renderProjectActions(project)}
                 </div>
               </div>
